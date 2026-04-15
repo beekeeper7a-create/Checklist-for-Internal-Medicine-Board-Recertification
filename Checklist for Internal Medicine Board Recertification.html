@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="内科専門医更新">
+<title>高知医療センター総合診療科 内科専門医更新要件チェックリスト</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic Pro", sans-serif; background: #f5f5f3; min-height: 100vh; padding: 1.25rem 1rem 3rem; }
+.container { max-width: 640px; margin: 0 auto; }
+h1 { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 4px; line-height: 1.5; }
+h1 span { font-size: 12px; color: #666; font-weight: 400; display: block; margin-top: 2px; }
+.subtitle { font-size: 11px; color: #aaa; margin-bottom: 1.25rem; }
+.reset-btn { font-size: 12px; color: #888; background: none; border: 1px solid #ddd; border-radius: 8px; padding: 6px 12px; -webkit-appearance: none; cursor: pointer; display: block; margin: 0 0 1rem auto; }
+
+.unit-summary { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-bottom: 1.25rem; }
+.unit-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; padding: 10px 12px; }
+.unit-card.total { grid-column: span 2; border-color: #1D9E75; }
+.unit-label { font-size: 11px; color: #888; margin-bottom: 2px; }
+.unit-value { font-size: 22px; font-weight: 500; color: #1a1a1a; line-height: 1.2; }
+.unit-value span { font-size: 12px; color: #888; font-weight: 400; margin-left: 2px; }
+.unit-bar-outer { height: 5px; background: #e8e8e8; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.unit-bar-inner { height: 5px; border-radius: 3px; transition: width 0.4s cubic-bezier(.22,.68,0,1.2); }
+.req-label { font-size: 10px; color: #aaa; margin-top: 3px; }
+
+.section { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+.sec-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #f9f9f9; cursor: pointer; }
+.sec-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; transition: background 0.3s; }
+.sec-title { font-size: 14px; font-weight: 500; color: #1a1a1a; flex: 1; }
+.sec-unit { font-size: 12px; color: #888; background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; padding: 2px 8px; white-space: nowrap; }
+.req-badge { font-size: 10px; background: #FFEAEA; color: #A32D2D; padding: 1px 6px; border-radius: 6px; margin-left: 4px; }
+.sec-arrow { font-size: 13px; color: #bbb; transition: transform 0.2s; }
+
+/* 通常アイテム */
+.item { display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; border-top: 1px solid #f0f0f0; cursor: pointer; }
+.item:active { background: #f5f5f5; }
+.item:first-child { border-top: none; }
+.item-left { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+.item-cb { width: 22px; height: 22px; border: 1.5px solid #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.item-cb.checked { background: #1D9E75; border-color: #1D9E75; }
+.item-cb.checked::after { content: ''; display: block; width: 11px; height: 6px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translate(0,-1px); }
+.item-pts { font-size: 10px; color: #aaa; white-space: nowrap; }
+.item-body { flex: 1; min-width: 0; }
+.item-label { font-size: 13px; color: #1a1a1a; line-height: 1.5; }
+.item-label.done { color: #bbb; text-decoration: line-through; }
+.item-note { font-size: 11px; color: #999; margin-top: 2px; line-height: 1.5; }
+.item-req { font-size: 10px; background: #FFEAEA; color: #A32D2D; padding: 1px 5px; border-radius: 5px; display: inline-block; margin-left: 4px; vertical-align: middle; }
+.item-max { font-size: 10px; background: #f0f0f0; color: #888; padding: 1px 5px; border-radius: 5px; display: inline-block; margin-left: 4px; vertical-align: middle; }
+.multi-hint { font-size: 11px; color: #B5D4F4; margin-top: 2px; }
+
+/* 記録エントリー（学会・講演会） */
+.log-section { border-top: 1px solid #f0f0f0; }
+.log-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 6px; }
+.log-title { font-size: 12px; font-weight: 500; color: #888; }
+.log-add-btn { font-size: 12px; color: #fff; background: #1D9E75; border: none; border-radius: 16px; padding: 4px 12px; cursor: pointer; -webkit-appearance: none; }
+.log-entries { padding: 0 14px 10px; display: flex; flex-direction: column; gap: 8px; }
+.log-entry { background: #f9f9f9; border-radius: 8px; padding: 8px 10px; border: 1px solid #eee; }
+.log-entry-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.log-entry-num { font-size: 11px; color: #aaa; min-width: 20px; }
+.log-delete-btn { font-size: 11px; color: #ccc; background: none; border: none; cursor: pointer; margin-left: auto; padding: 2px 4px; }
+.log-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.log-field { display: flex; flex-direction: column; gap: 2px; }
+.log-field.full { grid-column: span 2; }
+.log-field label { font-size: 10px; color: #aaa; }
+.log-field input { font-size: 13px; color: #1a1a1a; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 5px 8px; width: 100%; -webkit-appearance: none; font-family: inherit; }
+.log-field input:focus { outline: none; border-color: #1D9E75; }
+.log-unit-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.log-unit-label { font-size: 11px; color: #aaa; }
+.log-unit-input { width: 56px; font-size: 13px; color: #1a1a1a; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 4px 8px; text-align: center; -webkit-appearance: none; font-family: inherit; }
+.log-unit-input:focus { outline: none; border-color: #1D9E75; }
+.log-unit-suffix { font-size: 11px; color: #888; }
+.log-empty { font-size: 12px; color: #ccc; padding: 4px 0 6px; }
+
+.collapsed .sec-body { display: none; }
+.collapsed .sec-arrow { transform: rotate(-90deg); }
+
+.toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(60px); background: #1a1a1a; color: #fff; font-size: 14px; padding: 10px 20px; border-radius: 20px; opacity: 0; transition: all 0.35s cubic-bezier(.22,.68,0,1.2); pointer-events: none; z-index: 9998; white-space: nowrap; max-width: 90vw; text-align: center; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+canvas { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; }
+.save-hint { font-size: 12px; color: #aaa; text-align: center; margin-top: 1.5rem; line-height: 1.8; padding: 12px; background: #fff; border-radius: 10px; border: 1px solid #eee; }
+</style>
+</head>
+<body>
+<canvas id="cc"></canvas>
+<div class="toast" id="toast"></div>
+<div class="container">
+<h1>高知医療センター 総合診療科<span>内科専門医 更新要件チェックリスト</span></h1>
+<p class="subtitle">更新は5年ごと（初回は認定日より5年5ヶ月）　出典：日本内科学会</p>
+<button class="reset-btn" onclick="resetAll()">リセット</button>
+<div class="unit-summary" id="unit-summary"></div>
+<div id="sections"></div>
+<div class="save-hint" id="save-hint"></div>
+</div>
+
+<script>
+var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+var hint=document.getElementById('save-hint');
+if(isIOS){hint.innerHTML='Safariの共有ボタン → 「ホーム画面に追加」でアプリのように使えます';}
+else{hint.style.display='none';}
+
+// セクション定義
+// hasLog: true のアイテムは日時・場所の記録欄を持つ
+var SECTIONS=[
+  {
+    id:'i',title:'① 診療実績の証明',color:'#1D9E75',unitMin:10,unitMax:10,required:true,
+    items:[{id:'i1',label:'セルフトレーニング問題（1回目）合格',note:'60%以上の正解が必要',pts:10,req:true,max:10}]
+  },
+  {
+    id:'ii',title:'② 専門医共通講習',color:'#378ADD',unitMin:3,unitMax:10,required:true,
+    items:[
+      {id:'ii1',label:'医療倫理（日本専門医機構承認）',note:'必須3項目のうちの1つ',pts:1,req:true,hasLog:true},
+      {id:'ii2',label:'感染対策（日本専門医機構承認）',note:'必須3項目のうちの1つ',pts:1,req:true,hasLog:true},
+      {id:'ii3',label:'医療安全（日本専門医機構承認）',note:'必須3項目のうちの1つ',pts:1,req:true,hasLog:true},
+      {id:'ii4',label:'共通講習（上記3項目以外）',note:'1回1単位・最大10単位。受講証に「日本専門医機構承認」または16〜18桁の登録番号が必要',pts:1,multi:true,max:7,hasLog:true}
+    ]
+  },
+  {
+    id:'iii',title:'③ 内科領域講習',color:'#BA7517',unitMin:20,unitMax:999,required:true,
+    items:[
+      {id:'iii1',label:'セルフトレーニング問題（2回目以降）',note:'1回10単位・最大40単位',pts:10,multi:true,max:4},
+      {id:'iii2',label:'JMECC 受講または指導',note:'1回4単位・最大12単位',pts:4,multi:true,max:3,hasLog:true},
+      {id:'iii3',label:'JMECC 指導者講習会 受講または指導',note:'1回4単位・最大12単位',pts:4,multi:true,max:3,hasLog:true},
+      {id:'iii4',label:'総会・生涯教育講演会・支部主催生涯教育講演会・指定講演 聴講',note:'1時間1単位・1日最大5単位・最大35単位',pts:1,multi:true,max:35,hasLog:true,logUnit:true},
+      {id:'iii5',label:'生涯教育講演会オンデマンド問題',note:'1回5単位・最大35単位',pts:5,multi:true,max:7,hasLog:true},
+      {id:'iii6',label:'CPC（基幹または連携施設開催）',note:'1時間1単位・最大10単位',pts:1,multi:true,max:10,hasLog:true,logUnit:true},
+      {id:'iii7',label:'内科学会指定各種講演会（医学会総会・日本医師会 等）聴講',note:'1時間1単位・最大10単位',pts:1,multi:true,max:10,hasLog:true,logUnit:true},
+      {id:'iii8',label:'病歴要約査読：二次評価（内科指導医のみ）',note:'1回5単位',pts:5,multi:true,hasLog:true}
+    ]
+  },
+  {
+    id:'iv',title:'④ 学術業績・診療以外の活動実績',color:'#7F77DD',unitMin:2,unitMax:10,required:true,
+    items:[
+      {id:'iv1',label:'総会・生涯教育講演会（A・B・Cセッション）・内科学の展望 出席',note:'1回2単位・最大6単位',pts:2,multi:true,max:3,hasLog:true},
+      {id:'iv2',label:'地方会・支部主催生涯教育講演会 出席',note:'1回1単位・最大6単位',pts:1,multi:true,max:6,hasLog:true},
+      {id:'iv3',label:'総会・地方会・内科学会指定講演等の演者',note:'1回1単位',pts:1,multi:true,hasLog:true},
+      {id:'iv4',label:'Internal Medicine誌 論文（筆頭著者）',note:'1回1単位・最大8単位',pts:1,multi:true,max:8},
+      {id:'iv5',label:'日本内科学会雑誌 論文（筆頭著者）',note:'1回1単位・最大8単位',pts:1,multi:true,max:8}
+    ]
+  },
+  {
+    id:'other',title:'⑤ 申請手続き',color:'#888780',unitMin:0,unitMax:0,required:false,
+    items:[
+      {id:'o1',label:'勤務実態の自己申告（更新年度1年間）',note:'学会ホームページより申告',pts:0,req:true},
+      {id:'o2',label:'本学会更新料 5,000円（税込）納付',pts:0,req:true},
+      {id:'o3',label:'日本専門医機構認定料 11,000円（税込）納付',pts:0,req:true}
+    ]
+  }
+];
+
+// state構造:
+// state.checks[itemId] = count（0 or 1 or n）
+// state.logs[itemId] = [ {date:'', place:'', name:'', units:n}, ... ]
+var state={checks:{},logs:{}};
+try{var s=localStorage.getItem('josler_renewal2');if(s)state=JSON.parse(s);}catch(e){}
+if(!state.checks)state.checks={};
+if(!state.logs)state.logs={};
+function save(){try{localStorage.setItem('josler_renewal2',JSON.stringify(state));}catch(e){}}
+
+function getCount(id){return state.checks[id]||0;}
+function isChecked(id){return getCount(id)>0;}
+function getLogs(id){return state.logs[id]||[];}
+
+function calcLogUnits(id,pts,logUnit){
+  var logs=getLogs(id);
+  var total=0;
+  logs.forEach(function(l){
+    total += logUnit ? (parseInt(l.units)||0) : pts;
+  });
+  return total;
+}
+
+function calcSectionUnits(sec){
+  var total=0;
+  sec.items.forEach(function(item){
+    var u=0;
+    if(item.hasLog && getLogs(item.id).length>0){
+      u=calcLogUnits(item.id,item.pts,item.logUnit);
+    } else {
+      var cnt=getCount(item.id);
+      if(cnt>0) u=cnt*item.pts;
+    }
+    if(item.max && !item.logUnit) u=Math.min(u,item.max*item.pts);
+    total+=u;
+  });
+  if(sec.unitMax>0) total=Math.min(total,sec.unitMax);
+  return total;
+}
+
+function calcTotalUnits(){
+  var t=0;
+  SECTIONS.forEach(function(s){t+=calcSectionUnits(s);});
+  return t;
+}
+
+function isSecComplete(sec){
+  if(sec.unitMin===0) return sec.items.every(function(i){return isChecked(i.id)||getLogs(i.id).length>0;});
+  return calcSectionUnits(sec)>=sec.unitMin;
+}
+
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2000);}
+
+function launchConfetti(){var c=document.getElementById('cc'),ctx=c.getContext('2d');c.width=window.innerWidth;c.height=window.innerHeight;var cols=['#1D9E75','#378ADD','#BA7517','#7F77DD','#E24B4A','#EF9F27'],ps=[];for(var i=0;i<90;i++)ps.push({x:Math.random()*c.width,y:-10-Math.random()*40,r:4+Math.random()*5,d:2+Math.random()*3,color:cols[Math.floor(Math.random()*cols.length)],tilt:Math.random()*10-5,ta:0,ts:0.05+Math.random()*0.1});var f=0;function draw(){ctx.clearRect(0,0,c.width,c.height);ps.forEach(function(p){ctx.beginPath();ctx.ellipse(p.x,p.y,p.r,p.r*0.5,p.tilt,0,Math.PI*2);ctx.fillStyle=p.color;ctx.fill();p.y+=p.d;p.x+=Math.sin(f*0.02+p.tilt)*0.8;p.ta+=p.ts;p.tilt=Math.sin(p.ta)*12;});f++;if(f<130)requestAnimationFrame(draw);else ctx.clearRect(0,0,c.width,c.height);}draw();}
+
+function updateSummary(){
+  var total=calcTotalUnits();
+  var pct=Math.min(Math.round(total/50*100),100);
+  var allComplete=SECTIONS.every(function(s){return isSecComplete(s);})&&total>=50;
+  var html='<div class="unit-card total">';
+  html+='<div class="unit-label">合計取得単位</div>';
+  html+='<div class="unit-value">'+total+'<span>/ 50単位以上必要</span></div>';
+  html+='<div class="unit-bar-outer"><div class="unit-bar-inner" style="width:'+pct+'%;background:'+(pct>=100?'#1D9E75':'#378ADD')+'"></div></div>';
+  html+='<div class="req-label">'+(pct>=100?'必須単位達成':'あと '+Math.max(0,50-total)+' 単位')+'</div></div>';
+  SECTIONS.filter(function(s){return s.unitMin>0;}).forEach(function(sec){
+    var u=calcSectionUnits(sec);
+    var sp=Math.min(Math.round(u/sec.unitMin*100),100);
+    html+='<div class="unit-card"><div class="unit-label">'+sec.title.substring(0,8)+'</div>';
+    html+='<div class="unit-value" style="font-size:18px;">'+u+'<span>/'+sec.unitMin+'必須</span></div>';
+    html+='<div class="unit-bar-outer"><div class="unit-bar-inner" style="width:'+sp+'%;background:'+sec.color+'"></div></div></div>';
+  });
+  document.getElementById('unit-summary').innerHTML=html;
+  if(allComplete) setTimeout(function(){showToast('更新要件クリア！おめでとうございます');launchConfetti();},300);
+}
+
+// チェック（log なし）
+function toggleCheck(itemId){
+  state.checks[itemId]=getCount(itemId)>0?0:1;
+  save();render();
+}
+
+// multi（log なし）: タップで+1、上限でリセット
+function tapMulti(itemId,maxN){
+  var cnt=getCount(itemId);
+  state.checks[itemId]=cnt<maxN?cnt+1:0;
+  save();render();
+}
+
+// ログ追加
+function addLog(itemId){
+  if(!state.logs[itemId]) state.logs[itemId]=[];
+  state.logs[itemId].push({date:'',place:'',name:'',units:1});
+  save();render();
+  // 追加後にスクロール
+  setTimeout(function(){
+    var entries=document.querySelectorAll('#logentries-'+itemId+' .log-entry');
+    if(entries.length>0) entries[entries.length-1].scrollIntoView({behavior:'smooth',block:'nearest'});
+  },100);
+}
+
+// ログ削除
+function deleteLog(itemId,idx){
+  if(state.logs[itemId]) state.logs[itemId].splice(idx,1);
+  save();render();
+}
+
+// ログフィールド更新（inputのonchange用）
+function updateLogField(itemId,idx,field,val){
+  if(state.logs[itemId] && state.logs[itemId][idx]!=null){
+    state.logs[itemId][idx][field]=val;
+    save();
+    // サマリーだけ更新（再renderなし）
+    updateSummary();
+  }
+}
+
+function toggleSection(secId){document.getElementById('sec-'+secId).classList.toggle('collapsed');}
+
+function resetAll(){state={checks:{},logs:{}};save();render();}
+
+function renderLogBlock(item){
+  var logs=getLogs(item.id);
+  var html='<div class="log-section">';
+  html+='<div class="log-header">';
+  html+='<span class="log-title">参加記録（'+logs.length+'件）</span>';
+  html+='<button class="log-add-btn" onclick="event.stopPropagation();addLog(\''+item.id+'\')">＋ 追加</button>';
+  html+='</div>';
+  if(logs.length===0){
+    html+='<div style="padding:0 14px 10px"><span class="log-empty">記録なし</span></div>';
+  } else {
+    html+='<div class="log-entries" id="logentries-'+item.id+'">';
+    logs.forEach(function(log,idx){
+      html+='<div class="log-entry">';
+      html+='<div class="log-entry-top">';
+      html+='<span class="log-entry-num">'+(idx+1)+'</span>';
+      html+='<button class="log-delete-btn" onclick="event.stopPropagation();deleteLog(\''+item.id+'\','+idx+')">✕ 削除</button>';
+      html+='</div>';
+      html+='<div class="log-fields">';
+      html+='<div class="log-field"><label>日付</label>';
+      html+='<input type="date" value="'+escVal(log.date)+'" onchange="updateLogField(\''+item.id+'\','+idx+',\'date\',this.value)" onclick="event.stopPropagation()" /></div>';
+      html+='<div class="log-field"><label>場所</label>';
+      html+='<input type="text" placeholder="例：高知市文化プラザ" value="'+escVal(log.place)+'" onchange="updateLogField(\''+item.id+'\','+idx+',\'place\',this.value)" onclick="event.stopPropagation()" /></div>';
+      html+='<div class="log-field full"><label>講演会・学会名</label>';
+      html+='<input type="text" placeholder="例：第123回日本内科学会総会" value="'+escVal(log.name)+'" onchange="updateLogField(\''+item.id+'\','+idx+',\'name\',this.value)" onclick="event.stopPropagation()" /></div>';
+      html+='</div>';
+      if(item.logUnit){
+        html+='<div class="log-unit-row"><span class="log-unit-label">取得単位：</span>';
+        html+='<input class="log-unit-input" type="number" min="0" max="5" value="'+(log.units||1)+'" onchange="updateLogField(\''+item.id+'\','+idx+',\'units\',parseInt(this.value)||0)" onclick="event.stopPropagation()" />';
+        html+='<span class="log-unit-suffix">単位</span></div>';
+      }
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+function escVal(v){return (v||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+function render(){
+  var cont=document.getElementById('sections');cont.innerHTML='';
+  SECTIONS.forEach(function(sec){
+    var complete=isSecComplete(sec);
+    var secUnits=sec.unitMin>0?calcSectionUnits(sec):null;
+    var div=document.createElement('div');div.className='section';div.id='sec-'+sec.id;
+    var badgeHtml=sec.unitMin>0
+      ?'<span class="sec-unit">'+secUnits+' / '+sec.unitMin+'単位</span>'
+      :'<span class="sec-unit">'+(complete?'完了':'未完')+'</span>';
+    var reqHtml=sec.required?'<span class="req-badge">必須</span>':'';
+
+    var itemsHtml=sec.items.map(function(item){
+      var cnt=getCount(item.id);
+      var logs=getLogs(item.id);
+      var checked=item.hasLog?logs.length>0:(cnt>0);
+      var isMulti=!!item.multi;
+      var reqTag=item.req?'<span class="item-req">必須</span>':'';
+      var maxTag=item.max?'<span class="item-max">最大'+(item.max*(item.logUnit?1:item.pts))+'単位</span>':'';
+
+      // 単位表示
+      var ptsDisp='';
+      if(item.pts>0){
+        if(item.hasLog){
+          var u=calcLogUnits(item.id,item.pts,item.logUnit);
+          ptsDisp=logs.length>0?(u+'単位'):(item.pts+'単位/回');
+        } else if(isMulti){
+          ptsDisp=cnt>0?(cnt+'回'):(item.pts+'単位/回');
+        } else {
+          ptsDisp=item.pts+'単位';
+        }
+      }
+
+      var clickFn=item.hasLog?'':'onclick="event.stopPropagation();'+(isMulti?'tapMulti(\''+item.id+'\','+(item.max||99)+')':'toggleCheck(\''+item.id+'\')')+'"';
+
+      var html='<div class="item" '+clickFn+'>';
+      html+='<div class="item-left" '+(item.hasLog?'onclick="event.stopPropagation()"':'')+'>'+
+        '<div class="item-cb'+(checked?' checked':'')+'"></div>'+
+        (item.pts>0?'<div class="item-pts">'+ptsDisp+'</div>':'')+
+        '</div>';
+      html+='<div class="item-body">';
+      html+='<div class="item-label'+(checked&&!isMulti&&!item.hasLog?' done':'')+'">'+item.label+reqTag+maxTag+'</div>';
+      if(item.note) html+='<div class="item-note">'+item.note+'</div>';
+      if(isMulti&&!item.hasLog) html+='<div class="multi-hint">タップで＋1回、上限でリセット</div>';
+      html+='</div></div>';
+
+      if(item.hasLog) html+=renderLogBlock(item);
+      return html;
+    }).join('');
+
+    div.innerHTML=
+      '<div class="sec-header" onclick="toggleSection(\''+sec.id+'\')">'+
+      '<div class="sec-dot" style="background:'+(complete?'#1D9E75':sec.color)+'"></div>'+
+      '<span class="sec-title">'+sec.title+reqHtml+'</span>'+
+      badgeHtml+
+      '<span class="sec-arrow">▾</span>'+
+      '</div><div class="sec-body">'+itemsHtml+'</div>';
+    cont.appendChild(div);
+  });
+  updateSummary();
+}
+
+render();
+</script>
+</body>
+</html>
